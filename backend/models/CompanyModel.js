@@ -23,6 +23,10 @@ const companySchema = new mongoose.Schema({
     maxlength: 20,
     index: true
   },
+  isActive: {
+    type:Boolean,
+    default:true
+  },
   createdAt: {
     type: Date,
     default: Date.now,

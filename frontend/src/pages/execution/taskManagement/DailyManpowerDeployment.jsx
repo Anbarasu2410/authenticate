@@ -12,6 +12,7 @@ import {
   Popconfirm
 } from "antd";
 import axios from "axios";
+
 import dayjs from "dayjs";
 
 const { Option } = Select;
@@ -37,6 +38,15 @@ const DailyManpowerDeployment = () => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const API_URL = process.env.REACT_APP_URL || "http://localhost:5000";
+
+  axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 
   /* ------------------ LOAD MASTER DATA ------------------ */
   useEffect(() => {

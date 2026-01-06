@@ -269,7 +269,7 @@ const checkEmployeeUniqueness = async (employeeCode, excludeEmployeeId = null) =
 export const getEmployeesByCompany = async (req, res) => {
   try {
     const companyId = parseInt(req.params.companyId, 10);
-    
+
     if (isNaN(companyId) || companyId <= 0) {
       return res.status(400).json({
         success: false,
@@ -278,16 +278,15 @@ export const getEmployeesByCompany = async (req, res) => {
       });
     }
 
-    console.log(`🔍 Executing employee retrieval for company ID: ${companyId}`);
-    
-    const companyDrivers = await CompanyUser.find({ companyId, role: 'driver' })
-      .select('userId role')
-      .lean()
-      .exec();
+    // Include both workers and drivers
+    const companyUsers = await CompanyUser.find({
+      companyId,
+      role: { $in: ['worker', 'driver'] }
+    }).select('userId role').lean();
 
-    const userIds = companyDrivers.map(cd => cd.userId);
+    const userIds = companyUsers.map(u => u.userId);
 
-    if (userIds.length === 0) {
+    if (!userIds.length) {
       return res.json({
         success: true,
         count: 0,
@@ -297,28 +296,37 @@ export const getEmployeesByCompany = async (req, res) => {
       });
     }
 
-    const employees = await Employee.find({ userId: { $in: userIds } })
+    const employees = await Employee.find({
+      companyId,
+      status: { $regex: /^active$/i },
+      userId: { $in: userIds }
+    })
       .select('id employeeCode fullName phone jobTitle status photoUrl userId createdAt')
       .sort({ createdAt: -1 })
-      .lean()
-      .exec();
-    
-    console.log(`✅ Company employee retrieval successful: ${employees.length} employees found`);
-    
+      .lean();
+
     const emailMap = await getUserEmailsBulk(userIds);
-    
-    const transformedEmployees = employees.map(employee => 
-      transformEmployeeResponse(employee, emailMap)
-    );
+
+    const transformedEmployees = employees.map(emp => ({
+      id: emp.id,
+      employeeCode: emp.employeeCode,
+      fullName: emp.fullName,
+      jobTitle: emp.jobTitle,
+      phone: emp.phone,
+      status: emp.status || "ACTIVE",
+      photoUrl: emp.photoUrl || null,
+      email: emailMap[emp.userId] || null,
+      userId: emp.userId,
+      role: companyUsers.find(u => u.userId === emp.userId)?.role || "worker"
+    }));
 
     return res.json({
       success: true,
       count: transformedEmployees.length,
-      companyId: companyId,
+      companyId,
       data: transformedEmployees,
       timestamp: new Date().toISOString()
     });
-
   } catch (error) {
     console.error('❌ Company employee retrieval failed:', error);
     return res.status(500).json({
@@ -328,6 +336,7 @@ export const getEmployeesByCompany = async (req, res) => {
     });
   }
 };
+
 
 
 const generateEmployeeId = async () => {
@@ -1465,104 +1474,83 @@ export const getEmployeeById = async (req, res) => {
 // };
 export const getWorkerEmployees = async (req, res) => {
   try {
-    const { companyId, role = "worker", search = "" } = req.query;
+    const { companyId } = req.params;
+    const { search = "" } = req.query;
 
     if (!companyId) {
-      return res.status(400).json({ 
-        success: false,
-        message: "companyId is required" 
-      });
+      return res.status(400).json({ success: false, message: "companyId is required" });
     }
 
-    console.log('🔍 Fetching worker employees for company:', companyId);
-
-    // Convert companyId to numeric for querying
-    const numericCompanyId = parseInt(companyId);
-
-    if (isNaN(numericCompanyId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid company ID format"
-      });
+    const numericCompanyId = Number(companyId);
+    if (!Number.isInteger(numericCompanyId) || numericCompanyId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid companyId" });
     }
 
-    console.log('🔢 Numeric company ID:', numericCompanyId);
-    
-    // Step 1: Find all company_user records with role = 'worker'
-    const companyUserRecords = await CompanyUser.find({
+    const companyExists = await Company.exists({ id: numericCompanyId });
+    if (!companyExists) {
+      return res.status(404).json({ success: false, message: "Company not found" });
+    }
+
+    // Include only workers
+    const workerUserIds = await CompanyUser.find({
       companyId: numericCompanyId,
-      role,
-    }).lean();
+      role: { $regex: /^worker$/i } // case-insensitive
+    }).distinct("userId");
 
-    console.log('👥 Found company user records:', companyUserRecords);
-    const userIds = companyUserRecords.map((cu) => cu.userId);
-    console.log('👥 Found company users with worker role:', userIds.length);
-
-    if (userIds.length === 0) {
-      return res.json({
-        success: true,
-        data: [],
-        count: 0,
-        message: "No worker users found for this company"
-      });
+    if (!workerUserIds.length) {
+      return res.json({ success: true, data: [], count: 0 });
     }
 
-    // Step 2: Get user emails in bulk
-    const emailMap = await getUserEmailsBulk(userIds);
-
-    // Step 3: Find all employees linked to those users
-    const query = {
+    const employeeQuery = {
       companyId: numericCompanyId,
-      status: "ACTIVE",
-      userId: { $in: userIds },
+      status: { $regex: /^active$/i },
+      userId: { $in: workerUserIds }
     };
 
-    // Add search functionality
-    if (search) {
-      query.$or = [
-        { fullName: { $regex: search, $options: 'i' } },
-        { jobTitle: { $regex: search, $options: 'i' } },
-        { employeeCode: { $regex: search, $options: 'i' } }
+    if (search.trim()) {
+      employeeQuery.$or = [
+        { fullName: { $regex: search, $options: "i" } },
+        { jobTitle: { $regex: search, $options: "i" } },
+        { employeeCode: { $regex: search, $options: "i" } }
       ];
     }
 
-    // Step 4: Fetch employees (no population needed)
-    const employees = await Employee.find(query)
-      .select("id employeeCode fullName jobTitle phone status photoUrl userId")
+    const employees = await Employee.find(employeeQuery)
+      .select("id employeeCode fullName jobTitle phone photoUrl userId status")
       .sort({ fullName: 1 })
-      .lean()
-      .exec();
+      .lean();
 
-    console.log('✅ Found active worker employees:', employees.length);
+    const emailMap = await getUserEmailsBulk(workerUserIds);
 
-    // Transform response to include user email
-    const transformedEmployees = employees.map(employee => ({
-      id: employee.id,
-      employeeCode: employee.employeeCode,
-      fullName: employee.fullName,
-      jobTitle: employee.jobTitle,
-      phone: employee.phone,
-      status: employee.status,
-      photoUrl: employee.photoUrl,
-      email: emailMap[employee.userId] || null,
-      userId: employee.userId
+    const transformedEmployees = employees.map(emp => ({
+      id: emp.id,
+      employeeCode: emp.employeeCode || "—",
+      fullName: emp.fullName || "—",
+      jobTitle: emp.jobTitle || "—",
+      phone: emp.phone || "—",
+      status: emp.status || "ACTIVE",
+      photoUrl: emp.photoUrl || null,
+      email: emailMap[emp.userId] || null,
+      userId: emp.userId
     }));
 
-    res.json({
+    return res.json({
       success: true,
       data: transformedEmployees,
       count: transformedEmployees.length,
-      message: `Found ${transformedEmployees.length} active worker employees`
+      message: `Found ${transformedEmployees.length} active worker employees for company ${numericCompanyId}`
     });
   } catch (err) {
-    console.error("❌ Error fetching worker employees:", err);
-    res.status(500).json({ 
+    console.error("❌ getWorkerEmployees error:", err);
+    return res.status(500).json({
       success: false,
-      message: "Server error while fetching worker employees", 
-      error: err.message 
+      message: "Server error while fetching worker employees",
+      error: err.message
     });
   }
 };
+
+
 
 /**
  * GET /api/employees/company/:companyId/active - Get active employees for driver assignment

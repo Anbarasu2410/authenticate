@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 const projectManpowerRequirementSchema = new mongoose.Schema({
-  id: { type: String },
-  projectId: { type: String },
+  id: { type: Number },
+  projectId: { type: Number },
   tradeName: { type: String },
   requiredWorkers: { type: Number },
   bufferWorkers: { type: Number, default: 0 }

@@ -15,18 +15,19 @@ const axiosInstance = axios.create({
 // Add request interceptor for logging
 axiosInstance.interceptors.request.use(
   (config) => {
-    console.log('🚀 API Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      data: config.data,
-    });
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.warn('⚠️ No token found in localStorage');
+    } else {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
-  (error) => {
-    console.error('❌ Request Error:', error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
 
 // Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
@@ -530,7 +531,7 @@ const apiService = {
 
   getProjectsByCompany: async (companyId) => {
     try {
-      const response = await axiosInstance.get(`/projects/company/${companyId}`);
+      const response = await axiosInstance.get(`/projects/${companyId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching projects by company:', error.response?.data || error.message);
@@ -538,7 +539,7 @@ const apiService = {
     }
   },
 
-  // ========== FLEET TASK ENDPOINTS ==========
+  // ========== FLEET TASK ENDPOINTS ======
   getFleetTasks: async () => {
     try {
       const response = await axiosInstance.get('/fleet-tasks');

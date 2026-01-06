@@ -110,7 +110,7 @@ const HomePage = () => {
           console.log('🎯 EDIT MODE DETECTED - Setting up form with task data');
           
           setIsEditing(true);
-          setEditingTaskId(taskData.id || taskData._id);
+          setEditingTaskId(taskData.id || taskData.id);
           setEditTaskData(taskData);
           setOriginalEditData(taskData);
           

@@ -4,7 +4,7 @@ const attendanceSchema = new mongoose.Schema(
   {
     id: {
       type: Number,
-      unique: true,
+      //unique: true,
     },
     employeeId: {
       type: Number,

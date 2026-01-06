@@ -1,8 +1,10 @@
 import express from "express";
 import {
+
   createProject,
-  updateProject,
   getProject,
+  getProjectsByCompany,
+  updateProject,
   listProjects,
   deleteProject,
   setProjectLocation,
@@ -29,11 +31,14 @@ import {
   getTransportPlan,
   updateStatus,
   updateTimeline,
+
   // getProjectDashboard,
   // getAllProjects,
   // getProjectsByCompany,
   // getProjectById
 } from "../controllers/projectController.js";
+import auth from '../middleware/authMiddleware.js';
+import permit from '../middleware/permissionMiddleware.js';
 
 import uploadMiddleware from "../multer/upload.js"; // Multer
 
@@ -46,9 +51,14 @@ const router = express.Router();
 
 // 1. Project core
 router.post("/", createProject);
-router.put("/:projectId", updateProject);
 router.get("/:projectId", getProject);
-router.get("/", listProjects);
+ router.get(":companyId", auth, permit("PROJECT_VIEW"), getProjectsByCompany);
+router.put("/:projectId", updateProject);
+
+
+
+
+router.get("/", auth, permit('PROJECT_VIEW'), listProjects);
 router.delete("/:projectId", deleteProject);
 
 // 2. Location

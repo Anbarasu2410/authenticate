@@ -62,7 +62,7 @@ const BasicDetailsForm = ({ onCompanyChange, onProjectChange, form, isEditing, e
 
         setTimeout(() => {
           form.setFieldsValue({
-            company: company._id,
+            company: company.id,
             taskDate: taskDate,
             pickupTime: pickupTime,
             dropTime: dropTime,
@@ -91,12 +91,12 @@ const BasicDetailsForm = ({ onCompanyChange, onProjectChange, form, isEditing, e
           // Set project in form after a delay to ensure projects are loaded
           setTimeout(() => {
             form.setFieldsValue({
-              project: project._id
+              project: project.id
             });
             
             // Notify parent about project change
             if (onProjectChange) {
-              onProjectChange(project._id, project.name, project.id);
+              onProjectChange(project.id, project.projectName, project.id);
             }
             
             setSelectedProjectName(project.name);
@@ -170,7 +170,7 @@ const BasicDetailsForm = ({ onCompanyChange, onProjectChange, form, isEditing, e
   };
 
   const handleCompanyChange = (companyMongoId) => {
-    const companyObj = companies.find((c) => c._id === companyMongoId);
+    const companyObj = companies.find((c) => c.id === companyMongoId);
     
     console.log('🏢 Company selected:', {
       mongoId: companyMongoId,
@@ -214,7 +214,7 @@ const BasicDetailsForm = ({ onCompanyChange, onProjectChange, form, isEditing, e
   };
 
   const handleProjectChange = (projectMongoId) => {
-    const projectObj = projects.find((p) => p._id === projectMongoId);
+    const projectObj = projects.find((p) => p.id === projectMongoId);
     console.log('📋 Project selected:', {
       mongoId: projectMongoId,
       numericId: projectObj?.id,
@@ -292,7 +292,7 @@ const BasicDetailsForm = ({ onCompanyChange, onProjectChange, form, isEditing, e
                   }}
                 >
                   {companies.map((company) => (
-                    <Option key={company._id} value={company._id}>
+                    <Option key={company.id} value={company.id}>
                       {company.name}
                     </Option>
                   ))}
@@ -326,8 +326,8 @@ const BasicDetailsForm = ({ onCompanyChange, onProjectChange, form, isEditing, e
                   }}
                 >
                   {projects.map((project) => (
-                    <Option key={project._id} value={project._id}>
-                      {project.name}
+                    <Option key={project.id} value={project.id}>
+                      {project.projectName}
                     </Option>
                   ))}
                 </Select>

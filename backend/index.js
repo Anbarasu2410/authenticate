@@ -34,6 +34,9 @@ import companyUserRoute from './routes/companyUserRoute.js';
 import adminManpowerRoutes from "./routes/adminManpowerRoutes.js";
 import adminProgressRoutes from "./routes/adminProgressRoutes.js";
 import progressReportRoutes from './routes/progressReportRoutes.js';
+import clientRoutes from "./routes/clientRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js"
+import bossRoutes from "./routes/bossRoutes.js"
 
 
 import masterRoutes from"./routes/masterRoute.js";
@@ -81,12 +84,16 @@ app.use('/api/materials', materialRoutes);
 app.use('/api/company-users', companyUserRoute);
 
 app.use("/api/master", masterRoutes);
+app.use("/api/clients", clientRoutes);
+
 
 app.use('/api/workers', workerRoute);
 app.use('/api/workers-assignments', workerTaskAssignmentRoutes);
 app.use("/api/admin", adminManpowerRoutes);
 app.use("/api/admin", adminProgressRoutes);
 app.use('/api', progressReportRoutes);
+app.use('/api',dashboardRoutes);
+app.use('/api',bossRoutes);
 
 // Root route
 app.get('/', (req, res) => {

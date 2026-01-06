@@ -34,7 +34,10 @@ const clientSchema = new mongoose.Schema({
     type: String
  }
   },
-  { timestamps: true }
+ {
+    collection: 'clients',
+    timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
+  }
 );
 
 

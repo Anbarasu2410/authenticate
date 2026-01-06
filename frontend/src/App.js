@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import PermissionGuard from './components/PermissionGuard';
+
+import { AuthProvider } from './context/AuthContext';
 
 import LoginPage from './LoginPage';
 import HomePage from './pages/HomePage';
@@ -22,7 +25,9 @@ import ProgressReportDashboard from "./pages/ProgressReportDashboard";
 import Dashboard from './pages/Dashboard';
 
 import SelectCompany from './pages/SelectCompany';
-
+import ClientsPage from './pages/ClientsPage';
+import NotFound from "./pages/NotFound";
+import ExecutiveDashboard from "./pages/ExecutiveDashboard"
 
  
 
@@ -68,6 +73,7 @@ function App() {
             <HomePage />
           </AppLayout>
         } />
+
         
         {/* Other protected routes with layout */}
         <Route path="/companies" element={
@@ -150,6 +156,14 @@ function App() {
            
             } 
           />
+           <Route
+  path="/project"
+  element={
+    <AppLayout>
+      <ProjectList />
+    </AppLayout>
+  }
+/>
         
         <Route
   path="/project-master"
@@ -159,14 +173,7 @@ function App() {
     </AppLayout>
   }
 /> 
- <Route
-  path="/project"
-  element={
-    <AppLayout>
-      <ProjectList />
-    </AppLayout>
-  }
-/>
+
 <Route
   path="/execution/task-management/daily-worker-deployment"
   element={
@@ -193,6 +200,24 @@ function App() {
     </AppLayout>
   }
 />
+<Route
+  path="/clients"
+  element={
+    <AppLayout>
+      <ClientsPage />
+    </AppLayout>
+  }
+/>
+<Route
+  path="/boss/dashboard"
+  element={
+    <AppLayout>
+      <ExecutiveDashboard />
+    </AppLayout>
+  }
+/>
+
+ <Route path="*" element={<NotFound />} />
 
 
 

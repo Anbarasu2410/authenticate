@@ -507,7 +507,7 @@ const TaskPage = () => {
                     >
                       {projects.map(project => (
                         <Option key={project.id} value={project.id}>
-                          {project.name}
+                          {project.projectName}
                         </Option>
                       ))}
                     </Select>

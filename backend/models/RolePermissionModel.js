@@ -5,7 +5,7 @@ const rolePermissionSchema = new mongoose.Schema({
   roleId: { type: Number, required: true },
   permissionId: { type: Number, required: true }
 }, {
-  collection: 'rolePermission',
+  collection: 'rolePermissions',
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
 });
 

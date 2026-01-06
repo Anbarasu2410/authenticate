@@ -28,11 +28,20 @@ import {
 } from '@ant-design/icons';
 import axios from 'axios';
 
+
+
 const { Option } = Select;
 const { TextArea } = Input;
 const { Text } = Typography;
 
 const API_BASE_URL = 'http://localhost:5000/api';
+// axios.interceptors.request.use((config) => {
+//   const token = localStorage.getItem("token");
+//   if (token) {
+//     config.headers.Authorization = `Bearer ${token}`;
+//   }
+//   return config;
+// });
 
 const TransportTaskForm = ({ form, selectedCompany,isEditing  }) => {
   const [transportType, setTransportType] = useState('');

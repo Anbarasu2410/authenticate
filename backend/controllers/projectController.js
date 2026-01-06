@@ -70,6 +70,23 @@ export const updateProject = async (req, res) => {
 //   }
 // };
 
+export const getProjectsByCompany = async (req, res) => {
+  try {
+    const companyId = req.params.companyId;
+
+    if (!companyId) {
+      return res.status(400).json({ status: "error", message: "Company ID is required" });
+    }
+
+    // Fetch projects for the company
+    const projects = await Project.find({ companyId }).lean();
+
+    return res.json({ status: "success", data: projects });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: "error", message: err.message });
+  }
+};
 
 export const getProject = async (req, res) => {
   try {

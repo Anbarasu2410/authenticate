@@ -181,7 +181,7 @@ const getAllTasks = async (req, res) => {
         return {
           ...taskObj,
           companyName: company ? company.name : 'Unknown Company',
-          projectName: project ? project.name : 'Unknown Project',
+          projectName: project ? project.projectName : 'Unknown Project',
         };
       })
     );
@@ -237,7 +237,7 @@ const getTaskById = async (req, res) => {
     const taskWithDetails = {
       ...taskObj,
       companyName: company ? company.name : 'Unknown Company',
-      projectName: project ? project.name : 'Unknown Project'
+      projectName: project ? project.projectName : 'Unknown Project'
     };
 
     res.json({
@@ -430,7 +430,7 @@ const getTasksByProject = async (req, res) => {
         return {
           ...taskObj,
           companyName: company ? company.name : 'Unknown Company',
-          projectName: project.name
+          projectName: project.projectName
         };
       })
     );
@@ -442,7 +442,7 @@ const getTasksByProject = async (req, res) => {
       data: tasksWithDetails,
       project: {
         id: project.id,
-        name: project.name
+        name: project.projectName
       },
       pagination: {
         page,
@@ -506,7 +506,7 @@ const getTasksByStatus = async (req, res) => {
         return {
           ...taskObj,
           companyName: company ? company.name : 'Unknown Company',
-          projectName: project ? project.name : 'Unknown Project'
+          projectName: project ? projectName: 'Unknown Project'
         };
       })
     );
@@ -583,7 +583,7 @@ const getTasksByType = async (req, res) => {
         return {
           ...taskObj,
           companyName: company ? company.name : 'Unknown Company',
-          projectName: project ? project.name : 'Unknown Project'
+          projectName: project ? projectName : 'Unknown Project'
         };
       })
     );
